@@ -1,4 +1,4 @@
-# fastcup_collect_match_data.py
+# fastcup_collect_match_damages.py
 import asyncio
 from playwright.async_api import async_playwright
 import json
@@ -19,33 +19,18 @@ async def collect_data_for_match(page, match_id):
             },
             credentials: "include",
             body: JSON.stringify({
-                operationName: "GetMatchKills",
+                operationName: "GetMatchDamages",
                 variables: { matchId: MATCH_ID },
-                query: `query GetMatchKills($matchId: Int!) {
-                    kills: match_kills(
-                        where: {match_id: {_eq: $matchId}}
-                        order_by: {created_at: asc}
-                    ) {
+                query: `query GetMatchDamages($matchId: Int!) {
+                    damages: match_damages(where: {match_id: {_eq: $matchId}}) {
                         roundId: round_id
-                        createdAt: created_at
-                        killerId: killer_id
+                        inflictorId: inflictor_id
                         victimId: victim_id
-                        assistantId: assistant_id
                         weaponId: weapon_id
-                        isHeadshot: is_headshot
-                        isWallbang: is_wallbang
-                        isOneshot: is_oneshot
-                        isAirshot: is_airshot
-                        isNoscope: is_noscope
-                        killerPositionX: killer_position_x
-                        killerPositionY: killer_position_y
-                        victimPositionX: victim_position_x
-                        victimPositionY: victim_position_y
-                        killerBlindedBy: killer_blinded_by
-                        killerBlindDuration: killer_blind_duration
-                        victimBlindedBy: victim_blinded_by
-                        victimBlindDuration: victim_blind_duration
-                        isTeamkill: is_teamkill
+                        hitboxGroup: hitbox_group
+                        damageReal: damage_real
+                        damageNormalized: damage_normalized
+                        hits
                         __typename
                     }
                 }`
@@ -59,19 +44,19 @@ async def collect_data_for_match(page, match_id):
         print(f"❌ Ошибка при парсинге {match_id}: {e}")
         return None
 
-    if not data or "data" not in data or "kills" not in data["data"]:
-        print(f"⚠️ Нет данных по убийствам для матча {match_id}")
+    if not data or "data" not in data or "damages" not in data["data"]:
+        print(f"⚠️ Нет данных по урону для матча {match_id}")
         return None
 
     return {
         "match_id": match_id,
-        "kills": data["data"]["kills"]
+        "damages": data["data"]["damages"]
     }
 
 
 async def main():
-    if not os.path.exists('logs/matches_data'):
-        os.makedirs('logs/matches_data')
+    if not os.path.exists('logs/matches_damages'):
+        os.makedirs('logs/matches_damages')
 
     with open("logs/matches_from_profile.json", "r", encoding="utf-8") as f:
         matches = json.load(f)
@@ -98,7 +83,7 @@ async def main():
             try:
                 match_data = await collect_data_for_match(page, match_id)
                 if match_data:
-                    with open(f"logs/matches_data/match_{match_id}.json", "w", encoding="utf-8") as f:
+                    with open(f"logs/matches_damages/match_damage_{match_id}.json", "w", encoding="utf-8") as f:
                         json.dump(match_data, f, indent=2, ensure_ascii=False)
                     print(f"✅ Матч {match_id} сохранён!")
                 else:
