@@ -70,8 +70,8 @@ async def collect_data_for_match(page, match_id):
 
 
 async def main():
-    if not os.path.exists('logs/matches_data'):
-        os.makedirs('logs/matches_data')
+    if not os.path.exists('logs/matches_kills'):
+        os.makedirs('logs/matches_kills')
 
     with open("logs/matches_from_profile.json", "r", encoding="utf-8") as f:
         matches = json.load(f)
@@ -98,7 +98,7 @@ async def main():
             try:
                 match_data = await collect_data_for_match(page, match_id)
                 if match_data:
-                    with open(f"logs/matches_data/match_kills_{match_id}.json", "w", encoding="utf-8") as f:
+                    with open(f"logs/matches_kills/match_kills_{match_id}.json", "w", encoding="utf-8") as f:
                         json.dump(match_data, f, indent=2, ensure_ascii=False)
                     print(f"✅ Матч {match_id} сохранён!")
                 else:
